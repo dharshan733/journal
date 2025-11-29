@@ -68,6 +68,24 @@ export default function AccountsPage() {
     }
   }
 
+  // 🔥 DELETE ACCOUNT
+  const handleDeleteAccount = async (id: string) => {
+    const confirmDelete = confirm("Are you sure you want to delete this account? All trades under this account will also be deleted.")
+    if (!confirmDelete) return
+
+    // First delete trades belonging to the account
+    await supabase.from('trades').delete().eq('account_id', id)
+
+    // Then delete the account
+    const { error } = await supabase.from('accounts').delete().eq('id', id)
+
+    if (!error) {
+      fetchAccounts()
+    } else {
+      alert("Error deleting account: " + error.message)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -152,11 +170,6 @@ export default function AccountsPage() {
                     <p className="text-sm text-gray-400">{account.tradeCount} trades</p>
                   </div>
                 </div>
-                <button className="text-gray-400 hover:text-white">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                  </svg>
-                </button>
               </div>
 
               <div className="space-y-3">
@@ -180,16 +193,27 @@ export default function AccountsPage() {
                 </div>
               </div>
 
+              {/* BUTTONS SECTION */}
               <div className="mt-4 pt-4 border-t border-gray-800 flex gap-2">
                 <Link href={`/trades?account=${account.id}`} className="flex-1">
                   <button className="w-full px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition text-sm font-semibold">
                     View Trades
                   </button>
                 </Link>
+
+                {/* EDIT BUTTON (unchanged) */}
                 <button className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
+                </button>
+
+                {/* 🔥 DELETE BUTTON */}
+                <button
+                  onClick={() => handleDeleteAccount(account.id)}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition text-sm font-semibold"
+                >
+                  Delete
                 </button>
               </div>
             </div>
